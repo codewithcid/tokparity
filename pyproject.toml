@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tokparity"
+version = "0.1.0"
+description = "Find where tokenizer ports (llama.cpp, Ollama, ...) disagree with Hugging Face tokenizers, and shrink every disagreement to a minimal repro."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Sidhardh S", email = "sidhardh215@gmail.com" }]
+requires-python = ">=3.9"
+dependencies = ["tokenizers>=0.19", "huggingface_hub>=0.23"]
+keywords = ["tokenizer", "llama.cpp", "ollama", "unicode", "multilingual", "testing", "parity"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Text Processing :: Linguistic",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+tokparity = "tokparity.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/codewithcid/tokparity"
+Issues = "https://github.com/codewithcid/tokparity/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tokparity"]
+
+[tool.ruff]
+line-length = 110
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

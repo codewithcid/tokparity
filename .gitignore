@@ -1,0 +1,19 @@
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+
+# local data and tools (large, or not ours to redistribute)
+/vendor/
+/hf/
+/gguf/
+/gguf_exp/
+/corpus/
+/results/
+/scratch/
+/backends/
+/survey/results/
+*.log
