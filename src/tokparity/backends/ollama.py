@@ -55,7 +55,9 @@ class Ollama:
             raise FileNotFoundError(
                 f"{self.binary} not found; run `tokparity build-ollama --ollama-src PATH`"
             )
-        self._proc = LineProcess([str(self.binary), str(self.model_dir)], f"Ollama tokenizer on {self.model_dir}")
+        self._proc = LineProcess(
+            [str(self.binary), str(self.model_dir)], f"Ollama tokenizer on {self.model_dir}"
+        )
 
     def encode_batch(self, texts: Sequence[str]) -> list[list[int]]:
         return self._proc.encode_batch(texts)

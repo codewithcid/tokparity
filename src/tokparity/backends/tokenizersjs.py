@@ -32,7 +32,9 @@ def setup(version: str = "latest") -> Path:
         raise RuntimeError("`npm` not found on PATH")
     target = install_dir()
     target.mkdir(parents=True, exist_ok=True)
-    subprocess.run([npm, "install", "--prefix", str(target), f"@huggingface/tokenizers@{version}"], check=True)
+    subprocess.run(
+        [npm, "install", "--prefix", str(target), f"@huggingface/tokenizers@{version}"], check=True
+    )
     return default_module()
 
 

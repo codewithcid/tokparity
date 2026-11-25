@@ -47,7 +47,7 @@ class Result:
 
 
 def _first_diff(a: Sequence[int], b: Sequence[int]) -> int:
-    return next((i for i, (x, y) in enumerate(zip(a, b)) if x != y), min(len(a), len(b)))
+    return next((i for i, (x, y) in enumerate(zip(a, b, strict=False)) if x != y), min(len(a), len(b)))
 
 
 def compare(
@@ -68,7 +68,9 @@ def compare(
         chunk = list(texts[start : start + batch_size])
         ref_ids = reference.encode_batch(chunk)
         cand_ids = candidate.encode_batch(chunk)
-        for text, label, a, b in zip(chunk, labels[start : start + batch_size], ref_ids, cand_ids):
+        for text, label, a, b in zip(
+            chunk, labels[start : start + batch_size], ref_ids, cand_ids, strict=True
+        ):
             stats = by_label.setdefault(label or "-", [0, 0])
             stats[0] += 1
             if a != b:
@@ -76,7 +78,9 @@ def compare(
                 mismatches.append(Mismatch(text, label, _first_diff(a, b), list(a), list(b)))
 
     def differs(cands: Sequence[str]) -> list[bool]:
-        return [x != y for x, y in zip(reference.encode_batch(cands), candidate.encode_batch(cands))]
+        return [
+            x != y for x, y in zip(reference.encode_batch(cands), candidate.encode_batch(cands), strict=True)
+        ]
 
     # Shrink one mismatch per label first, so the repros cover different bugs, then fill up in order.
     first_of_label = {}

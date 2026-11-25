@@ -7,8 +7,7 @@ process (Ollama, llama-tokenize) pay the startup cost once per round instead of 
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Callable
+from collections.abc import Callable, Sequence
 
 Oracle = Callable[[Sequence[str]], Sequence[bool]]
 
@@ -18,7 +17,7 @@ def _trim(text: str, differs: Oracle) -> str:
     step = max(1, len(text) // 2)
     while step >= 1 and len(text) > 1:
         cands = [c for c in (text[step:], text[:-step]) if c]
-        ok = [c for c, d in zip(cands, differs(cands)) if d]
+        ok = [c for c, d in zip(cands, differs(cands), strict=True) if d]
         if ok:
             text = min(ok, key=len)
             step = min(step, max(1, len(text) // 2))
@@ -35,7 +34,7 @@ def _ddmin(text: str, differs: Oracle, budget: int) -> str:
         cands = ["".join(chars[:i] + chars[i + size :]) for i in range(0, len(chars), size)]
         cands = [c for c in cands if c]
         budget -= len(cands)
-        hit = next((c for c, d in zip(cands, differs(cands)) if d), None)
+        hit = next((c for c, d in zip(cands, differs(cands), strict=True) if d), None)
         if hit is not None:
             chars = list(hit)
             n = max(n - 1, 2)

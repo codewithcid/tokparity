@@ -18,7 +18,7 @@ def tags(text: str) -> list[str]:
         out.append("combining-mark")
     if ZWNJ in text or ZWJ in text:
         out.append("zero-width-joiner")
-    if any(c == "Nd" and not ch.isascii() for c, ch in zip(cats, text)):
+    if any(c == "Nd" and not ch.isascii() for c, ch in zip(cats, text, strict=True)):
         out.append("non-ascii-digit")
     if any(c.startswith("P") for c in cats):
         out.append("punctuation")
@@ -30,8 +30,8 @@ def tags(text: str) -> list[str]:
         out.append("trailing-space")
     if any(c == "So" for c in cats):
         out.append("symbol/emoji")
-    if any(c.startswith("L") and ch.isascii() for c, ch in zip(cats, text)) and any(
-        c.startswith("L") and not ch.isascii() for c, ch in zip(cats, text)
+    if any(c.startswith("L") and ch.isascii() for c, ch in zip(cats, text, strict=True)) and any(
+        c.startswith("L") and not ch.isascii() for c, ch in zip(cats, text, strict=True)
     ):
         out.append("mixed-script")
     if text.isascii():
