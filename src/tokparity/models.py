@@ -21,6 +21,7 @@ TOKENIZER_FILES = [
     "*.py",
     "chat_template*",
     "tekken.json",
+    "original/tokenizer.model",
 ]
 
 

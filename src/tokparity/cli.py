@@ -44,13 +44,26 @@ def cmd_run(args) -> int:
     from tokparity.backends.hf import HFTokenizer
     from tokparity.models import model_dir
 
+    reference = HFTokenizer(model_dir(args.model))
+    return _compare_and_report(args, reference, _candidate(args, args.model), args.backend)
+
+
+def cmd_audit(args) -> int:
+    """The original tokenizer is the reference and tokenizer.json (run by `tokenizers`) the candidate."""
+    from tokparity.backends.hf import HFTokenizer
+    from tokparity.models import model_dir
+    from tokparity.originals import load_original
+
+    directory = model_dir(args.model)
+    return _compare_and_report(args, load_original(directory, args.original), HFTokenizer(directory), "audit")
+
+
+def _compare_and_report(args, reference, candidate, kind: str) -> int:
     texts, labels = [], []
     for spec in args.corpus or ["stress"]:
         for text, label in corpora.load(spec):
             texts.append(text)
             labels.append(label)
-    reference = HFTokenizer(model_dir(args.model))
-    candidate = _candidate(args, args.model)
     result = compare(reference, candidate, texts, labels, minimize_n=args.minimize)
     data = result.to_dict()
     data["model"] = args.model
@@ -59,7 +72,7 @@ def cmd_run(args) -> int:
     if args.out:
         out = Path(args.out)
         out.mkdir(parents=True, exist_ok=True)
-        stem = f"{args.model.replace('/', '__')}__{args.backend}"
+        stem = f"{args.model.replace('/', '__')}__{kind}"
         (out / f"{stem}.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
         (out / f"{stem}.md").write_text(md, encoding="utf-8")
     sys.stdout.reconfigure(encoding="utf-8")
@@ -112,6 +125,22 @@ def main(argv: list[str] | None = None) -> int:
         help="tokenizersjs: ESM entry to test, e.g. a checkout's dist/tokenizers.mjs (default: npm package)",
     )
     run.set_defaults(func=cmd_run)
+
+    audit = sub.add_parser(
+        "audit",
+        help="compare tokenizer.json with the model's original tokenizer (SentencePiece, tiktoken, tekken)",
+    )
+    audit.add_argument("model", help="Hugging Face repo id or local directory")
+    audit.add_argument("--original", help="original tokenizer file in the model directory (default: detect)")
+    audit.add_argument(
+        "--corpus",
+        action="append",
+        help="'stress' (default), 'sib200[:N]', or a .txt/.json/.jsonl file; repeatable",
+    )
+    audit.add_argument("--minimize", type=int, default=20, help="shrink the first N mismatches (default 20)")
+    audit.add_argument("--out", help="directory for the JSON and Markdown results")
+    audit.add_argument("--fail-on-mismatch", action="store_true", help="exit with status 1 on any mismatch")
+    audit.set_defaults(func=cmd_audit)
 
     b = sub.add_parser("build-ollama", help="compile the Ollama tokenizer harness (needs Go)")
     b.add_argument("--ollama-src", required=True, help="path to an ollama/ollama checkout")

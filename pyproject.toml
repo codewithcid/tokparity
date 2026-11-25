@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tokparity"
-version = "0.1.0"
+version = "0.2.0"
 description = "Find where tokenizer ports (llama.cpp, Ollama, ...) disagree with Hugging Face tokenizers, and shrink every disagreement to a minimal repro."
 readme = "README.md"
 license = "Apache-2.0"
@@ -24,7 +24,8 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.6"]
+originals = ["sentencepiece>=0.2", "protobuf", "tiktoken>=0.7", "mistral_common>=1.5"]
+dev = ["pytest>=8", "ruff>=0.6", "sentencepiece>=0.2", "protobuf", "tiktoken>=0.7"]
 
 [project.scripts]
 tokparity = "tokparity.cli:main"

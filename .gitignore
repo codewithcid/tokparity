@@ -17,3 +17,4 @@ build/
 /backends/
 /survey/results/
 *.log
+/survey/audit/

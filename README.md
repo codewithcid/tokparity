@@ -68,6 +68,26 @@ tokparity report results/*.json      # summary table
 
 `--fail-on-mismatch` makes `run` exit with status 1, for CI.
 
+### Auditing tokenizer.json itself
+
+`tokparity audit` turns the comparison around: the reference is the tokenizer the model was trained with, and the candidate is the model's `tokenizer.json` run by `tokenizers`. The original is detected from the repo files: a SentencePiece model (`tokenizer.model`, `spiece.model`, `sentencepiece.bpe.model`), Meta's tiktoken file (`original/tokenizer.model`) or Mistral's `tekken.json`.
+
+```bash
+pip install "tokparity[originals] @ git+https://github.com/codewithcid/tokparity"
+tokparity audit baidu/ERNIE-4.5-21B-A3B-Thinking --corpus stress --corpus sib200
+```
+
+`survey/audit_hub.py` runs the audit over the most downloaded Hub models. Of the top 5,000, 290 ship both a `tokenizer.json` and an original tokenizer; they share 146 distinct file pairs, and 47 of those match exactly. Among the rest:
+
+| models | difference |
+|---|---|
+| umT5, MADLAD-400 | tabs, newlines and repeated spaces are lost: the SentencePiece models keep whitespace (`remove_extra_whitespaces: false`, byte fallback) |
+| Sarvam-1, Salamandra | the SentencePiece normalization (`nmt_nfkc` and custom rules) is not applied: `ＡＢＣ ﬁle` is 3 tokens in Sarvam-1's SentencePiece model and 15 byte tokens in `tokenizer.json` |
+| ERNIE-4.5-21B-A3B-Thinking | a `▁` is prepended to every text segment, also after special tokens in chat prompts; the original has no dummy prefix, nor do the other ERNIE-4.5 repos |
+| XLM-R family (bge-m3, multilingual-e5, ...), T5, NLLB | the `Precompiled` normalizer works per grapheme, unlike SentencePiece (known: [tokenizers#2116](https://github.com/huggingface/tokenizers/issues/2116)) |
+
+Some differences are intended: ALBERT, XLNet and SigLIP lowercase or strip accents in `tokenizer.json` on purpose.
+
 ### Corpora
 
 - `stress` (default): 1,808 generated strings aimed at the places ports go wrong: canonically decomposed text in every script (and characters NFC itself changes), every combining mark after a letter of its block, ZWJ/ZWNJ inside words, the decimal digits of every script, whitespace runs before punctuation, case-split words and contractions, compatibility characters and code-mixed text. Generated from the Unicode database at run time, so it is deterministic for a given Python version.
